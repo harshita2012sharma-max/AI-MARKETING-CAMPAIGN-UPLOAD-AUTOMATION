@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — AdPulse</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<style>
+body { display:flex; min-height:100vh; background: var(--bg-base); }
+
+.auth-left {
+  width: 480px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 56px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+.auth-right {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  background: radial-gradient(ellipse at 60% 30%, rgba(37,99,235,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.08) 0%, transparent 60%),
+              var(--bg-base);
+}
+
+/* Decorative grid */
+.auth-right::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(15,23,42,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+.auth-card { width: 100%; max-width: 360px; }
+
+.auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+.auth-logo-mark {
+  width: 36px; height: 36px; background: var(--accent);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; color: #fff;
+  box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+}
+.auth-logo-text { font-size: 19px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.4px; }
+
+.auth-card h1 {
+  font-size: 28px; font-weight: 800; color: var(--text-primary);
+  letter-spacing: -0.6px; margin-bottom: 8px;
+}
+.auth-card .sub { font-size: 15px; color: var(--text-muted); margin-bottom: 36px; line-height: 1.5; }
+
+.auth-form .fg { margin-bottom: 18px; }
+.auth-form label {
+  display: block; font-size: 13.5px; font-weight: 600;
+  color: var(--text-secondary); margin-bottom: 8px;
+}
+.auth-form input {
+  width: 100%; padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-md);
+  border-radius: var(--r);
+  color: var(--text-primary); font-size: 15px; font-family: var(--font);
+  transition: var(--ease);
+}
+.auth-form input:focus {
+  outline: none; border-color: var(--accent);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+.auth-form input::placeholder { color: var(--text-dim); }
+
+.auth-submit {
+  width: 100%; padding: 13px;
+  background: var(--accent); border: none; border-radius: var(--r);
+  color: #fff; font-size: 15px; font-weight: 700; font-family: var(--font);
+  cursor: pointer; transition: var(--ease); margin-top: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+}
+.auth-submit:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.45); }
+
+.auth-error {
+  background: var(--red-bg); border: 1px solid var(--red-bd);
+  color: var(--red); padding: 12px 16px; border-radius: var(--r);
+  font-size: 14px; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 9px;
+}
+.auth-error svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.demo-box {
+  margin-top: 32px; padding: 18px 20px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.demo-box-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--text-muted); margin-bottom: 14px;
+}
+.demo-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; font-size: 13.5px;
+  border-bottom: 1px solid var(--border);
+}
+.demo-row:last-child { border-bottom: none; }
+.demo-role { color: var(--text-secondary); font-weight: 500; }
+.demo-cred {
+  font-family: var(--font-mono); font-size: 13px; color: var(--text-primary);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  padding: 3px 10px; border-radius: var(--r-sm);
+}
+
+/* Right side content */
+.showcase { text-align: center; padding: 60px 48px; position: relative; z-index: 1; }
+.showcase-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 700; letter-spacing: .6px;
+  color: var(--accent); background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  padding: 6px 16px; border-radius: 24px; margin-bottom: 32px;
+  text-transform: uppercase;
+}
+.showcase h2 {
+  font-size: 42px; font-weight: 800; color: var(--text-primary);
+  letter-spacing: -1.5px; line-height: 1.15; margin-bottom: 20px;
+}
+.showcase h2 span { color: var(--accent); }
+.showcase p {
+  font-size: 16px; color: var(--text-secondary);
+  max-width: 420px; margin: 0 auto 48px; line-height: 1.7;
+}
+.showcase-stats { display: flex; gap: 48px; justify-content: center; }
+.ss-item { text-align: center; }
+.ss-num   { font-size: 36px; font-weight: 800; color: var(--text-primary); letter-spacing: -1px; }
+.ss-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; margin-top: 5px; font-weight: 600; }
+
+.feature-pills { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 48px; }
+.feature-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 24px;
+  background: rgba(15,23,42,0.04); border: 1px solid var(--border);
+  font-size: 13.5px; color: var(--text-secondary); font-weight: 500;
+}
+.feature-pill svg { width: 14px; height: 14px; color: var(--accent); }
+
+@media (max-width: 1000px) { .auth-right { display: none; } }
+@media (max-width: 540px)  { .auth-left { width: 100%; padding: 36px 28px; } }
+</style>
+</head>
+<body>
+
+<div class="auth-left">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">A</div>
+      <span class="auth-logo-text">AdPulse</span>
+    </div>
+
+    <h1>Welcome back</h1>
+    <p class="sub">Sign in to your AI campaign intelligence platform</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="auth-error">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      {{ message }}
+    </div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" class="auth-form">
+      <div class="fg">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter your username" required autofocus autocomplete="username">
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="auth-submit">
+        Sign in to AdPulse
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <div class="demo-box">
+      <div class="demo-box-title">Demo Credentials</div>
+      <div class="demo-row"><span class="demo-role">Administrator</span><span class="demo-cred">admin / admin</span></div>
+      <div class="demo-row"><span class="demo-role">Manager</span><span class="demo-cred">manager / manager</span></div>
+      <div class="demo-row"><span class="demo-role">Viewer</span><span class="demo-cred">viewer / viewer</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="auth-right">
+  <div class="showcase">
+    <div class="showcase-badge">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      AI-Powered Platform
+    </div>
+
+    <h2>One platform.<br><span>Three networks.</span><br>Zero guesswork.</h2>
+
+    <p>Centralize Google Ads, Meta, and Bing campaigns with AI-driven insights, real-time anomaly detection, and automated optimization.</p>
+
+    <div class="feature-pills">
+      <div class="feature-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Multi-platform sync
+      </div>
+      <div class="feature-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        AI recommendations
+      </div>
+      <div class="feature-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Anomaly detection
+      </div>
+      <div class="feature-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Auto PDF reports
+      </div>
+      <div class="feature-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        7-day forecasting
+      </div>
+      <div class="feature-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        AI chat assistant
+      </div>
+    </div>
+
+    <div class="showcase-stats">
+      <div class="ss-item"><div class="ss-num">3</div><div class="ss-label">Ad Networks</div></div>
+      <div class="ss-item"><div class="ss-num">24/7</div><div class="ss-label">Monitoring</div></div>
+      <div class="ss-item"><div class="ss-num">AI</div><div class="ss-label">Powered</div></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

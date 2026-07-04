@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Campaigns{% endblock %}
+{% block page_title %}Campaigns{% endblock %}
+
+{% block content %}
+
+<div class="ph" style="margin-bottom:32px;">
+  <div class="ph-left">
+    <h1 style="font-size:34px; font-weight:700; letter-spacing:-0.6px; color:var(--text-primary);">Campaigns</h1>
+    <p style="font-size:16px; color:var(--text-muted); margin-top:8px;">Manage campaigns across Google, Meta, and Bing from one place</p>
+  </div>
+  <div class="ph-right" style="gap:12px;">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary" style="border-radius:12px; padding:11px 20px; font-size:15px; font-weight:600; box-shadow:var(--shadow-sm);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </a>
+    <a href="{{ url_for('campaigns.create') }}" class="btn btn-primary" style="border-radius:12px; padding:11px 22px; font-size:15px; font-weight:600; background:var(--accent); box-shadow:0 4px 16px rgba(37,99,235,0.35);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Campaign
+    </a>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card mb-24" style="border-radius:20px; padding:24px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+  <div class="fjb" style="flex-wrap: wrap; gap: 14px;">
+    <div class="flex gap-8" style="flex-wrap: wrap;">
+      <button class="tab {% if not platform %}active{% endif %}" data-platform-filter="all" style="border-radius:10px; padding:9px 16px; font-size:14px; font-weight:600;">All Platforms</button>
+      <button class="tab {% if platform == 'google' %}active{% endif %}" data-platform-filter="google" style="border-radius:10px; padding:9px 16px; font-size:14px; font-weight:600;">Google</button>
+      <button class="tab {% if platform == 'meta' %}active{% endif %}" data-platform-filter="meta" style="border-radius:10px; padding:9px 16px; font-size:14px; font-weight:600;">Meta</button>
+      <button class="tab {% if platform == 'bing' %}active{% endif %}" data-platform-filter="bing" style="border-radius:10px; padding:9px 16px; font-size:14px; font-weight:600;">Bing</button>
+    </div>
+    <div class="topbar-search" style="width: 260px; border-radius:12px; padding:10px 16px; background:var(--bg-elevated); border:1px solid var(--border);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="campaign-search" placeholder="Search campaigns…" value="{{ query or '' }}" style="font-size:15px;">
+    </div>
+  </div>
+</div>
+
+<!-- CAMPAIGNS TABLE -->
+<div class="card" style="border-radius:20px; padding:0; overflow:hidden; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+  {% if campaigns and campaigns|length > 0 %}
+  <div class="table-wrap" style="border-radius:20px; overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:var(--bg-elevated);">
+          <th data-sort style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Campaign</th>
+          <th style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Platform</th>
+          <th style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Status</th>
+          <th data-sort style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Health</th>
+          <th data-sort style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Daily Budget</th>
+          <th data-sort style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Spent</th>
+          <th style="padding:16px 20px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in campaigns %}
+        <tr style="border-top:1px solid var(--border); {% if loop.index is even %}background:rgba(15,23,42,0.02);{% endif %}">
+          <td class="td-main" style="padding:18px 20px; font-size:15px; font-weight:600;">
+            <a href="{{ url_for('campaigns.detail', campaign_id=c.id) }}" style="color:var(--text-primary); text-decoration:none;">{{ c.name }}</a>
+          </td>
+          <td style="padding:18px 20px;"><span class="plat plat-{{ c.platform }}" style="border-radius:20px; padding:5px 12px; font-size:13px; font-weight:600;">{{ c.platform.title() }}</span></td>
+          <td style="padding:18px 20px;">
+            {% if c.status == 'active' %}<span class="badge badge-green" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>Active</span>
+            {% elif c.status == 'paused' %}<span class="badge badge-amber" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>Paused</span>
+            {% elif c.status == 'ended' %}<span class="badge badge-red" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>Ended</span>
+            {% else %}<span class="badge badge-muted" style="border-radius:20px; padding:5px 12px; font-weight:600;">Draft</span>{% endif %}
+          </td>
+          <td style="padding:18px 20px;">
+            {% set hs = c.health_score or 0 %}
+            <span class="health {% if hs >= 80 %}h-excellent{% elif hs >= 60 %}h-good{% elif hs >= 40 %}h-warn{% else %}h-crit{% endif %}" style="border-radius:10px; padding:5px 10px; font-weight:700;">
+              {{ "%.0f"|format(hs) }}
+            </span>
+          </td>
+          <td style="padding:18px 20px; font-size:15px; color:var(--text-secondary);">₹{{ "{:,.0f}".format(c.daily_budget) }}</td>
+          <td style="padding:18px 20px; font-size:15px; color:var(--text-secondary);">₹{{ "{:,.0f}".format(c.spent_total) }}</td>
+          <td style="padding:18px 20px;">
+            <div class="flex gap-8">
+              {% if c.status == 'active' %}
+              <form method="POST" action="{{ url_for('campaigns.pause', campaign_id=c.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Pause" style="border-radius:10px; width:36px; height:36px; padding:0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+              </form>
+              {% elif c.status == 'paused' %}
+              <form method="POST" action="{{ url_for('campaigns.resume', campaign_id=c.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Resume" style="border-radius:10px; width:36px; height:36px; padding:0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </button>
+              </form>
+              {% endif %}
+              <a href="{{ url_for('campaigns.detail', campaign_id=c.id) }}" class="btn btn-ghost btn-sm" title="View" style="border-radius:10px; width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty" style="padding:60px 20px;">
+    <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <h3 style="font-size:18px; margin-top:16px;">No campaigns found</h3>
+    <p style="margin-top:6px;">{% if query %}No campaigns match "{{ query }}".{% else %}Create your first campaign to get started.{% endif %}</p>
+    {% if not query %}<a href="{{ url_for('campaigns.create') }}" class="btn btn-primary mt-16" style="border-radius:12px; padding:12px 24px;">Create Campaign</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/campaigns.js') }}"></script>
+{% endblock %}

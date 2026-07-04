@@ -1,0 +1,56 @@
+# === Environment & secrets ===
+.env
+.env.*
+!.env.example
+
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+
+# === Virtual environment ===
+.venv/
+venv/
+env/
+
+# === Database ===
+# Old SQLite leftover (settings.py still points here by default:
+# DATABASE_PATH = BASE_DIR / "adpulse.db")
+adpulse.db
+*.db
+*.sqlite
+*.sqlite3
+
+# === Generated app data (created at runtime, not source) ===
+# settings.py auto-creates these on startup — never commit contents
+reports/
+logs/
+*.log
+
+# === Flask ===
+instance/
+.flaskenv
+
+# === IDE / editor ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Testing / coverage ===
+.pytest_cache/
+.coverage
+htmlcov/
+
+# === Distribution / packaging ===
+build/
+dist/
+*.egg-info/

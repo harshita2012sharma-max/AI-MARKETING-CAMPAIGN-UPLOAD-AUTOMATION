@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+
+<div class="ph" style="margin-bottom:32px;">
+  <div class="ph-left">
+    <h1 style="font-size:34px; font-weight:700; letter-spacing:-0.6px; color:#F8FAFC;">Reports</h1>
+    <p style="font-size:16px; color:#94A3B8; margin-top:8px;">Auto-generated PDF reports and CSV exports</p>
+  </div>
+  <div class="ph-right" style="gap:12px;">
+    <form method="POST" action="{{ url_for('reports.export_csv') }}" style="display:inline;">
+      <button type="submit" class="btn btn-secondary" style="border-radius:12px; padding:11px 20px; font-weight:600;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Export CSV
+      </button>
+    </form>
+    <form method="POST" action="{{ url_for('reports.generate_pdf') }}" style="display:inline;">
+      <button type="submit" class="btn btn-primary" style="border-radius:12px; padding:11px 22px; font-weight:600; background:#2563EB; box-shadow:0 4px 16px rgba(37,99,235,0.35);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Generate PDF Report
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="border-radius:20px; padding:26px; background:#1E293B; border:1px solid rgba(255,255,255,0.08); box-shadow:0 4px 20px rgba(0,0,0,0.24);">
+  <div class="card-head">
+    <div class="card-title" style="font-size:17px; font-weight:600;">Report History</div>
+    <div class="card-sub" style="font-size:13.5px; margin-top:4px;">{{ reports|length }} reports generated</div>
+  </div>
+
+  {% if reports %}
+    {% for r in reports %}
+    <div class="report-card" style="border-radius:16px; padding:18px 20px; margin-top:14px; background:#243244; border:1px solid rgba(255,255,255,0.06);">
+      <div class="report-icon {{ r.format }}" style="width:40px; height:40px; border-radius:12px;">
+        {% if r.format == 'pdf' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        {% else %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+        {% endif %}
+      </div>
+      <div class="f1">
+        <div class="report-name" style="font-size:15px; font-weight:600; color:#F8FAFC;">{{ r.title }}</div>
+        <div class="report-meta" style="font-size:13px; margin-top:4px; color:#94A3B8;">{{ r.report_type.title() }} · {{ r.format.upper() }} · {{ r.generated_at[:16] }}</div>
+      </div>
+      <span class="badge badge-blue" style="border-radius:20px; padding:5px 12px; font-weight:600;">{{ r.format.upper() }}</span>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty" style="padding:50px 20px;">
+    <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <h3 style="font-size:17px; margin-top:14px;">No reports yet</h3>
+    <p style="margin-top:6px;">Generate your first report using the buttons above.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

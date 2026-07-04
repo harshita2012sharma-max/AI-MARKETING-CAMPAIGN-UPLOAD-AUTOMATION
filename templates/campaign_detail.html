@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}{{ campaign.name }}{% endblock %}
+{% block page_title %}{{ campaign.name }}{% endblock %}
+
+{% block content %}
+
+<div class="ph" style="margin-bottom:32px;">
+  <div class="ph-left">
+    <a href="{{ url_for('campaigns.index') }}" style="display:inline-flex; align-items:center; gap:6px; font-size:14px; color:var(--text-muted); text-decoration:none; font-weight:600;">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Campaigns
+    </a>
+    <h1 style="font-size:34px; font-weight:700; letter-spacing:-0.6px; color:var(--text-primary); margin-top:10px;">{{ campaign.name }}</h1>
+    <div class="flex gap-8 mt-8" style="align-items:center; flex-wrap:wrap; margin-top:12px;">
+      <span class="plat plat-{{ campaign.platform }}" style="border-radius:20px; padding:5px 12px; font-size:13px; font-weight:600;">{{ campaign.platform.title() }}</span>
+      {% if campaign.status == 'active' %}<span class="badge badge-green" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>Active</span>
+      {% elif campaign.status == 'paused' %}<span class="badge badge-amber" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>Paused</span>
+      {% elif campaign.status == 'ended' %}<span class="badge badge-red" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>Ended</span>
+      {% else %}<span class="badge badge-muted" style="border-radius:20px; padding:5px 12px; font-weight:600;">Draft</span>{% endif %}
+      {% set hs = campaign.health_score or 0 %}
+      <span class="health {% if hs >= 80 %}h-excellent{% elif hs >= 60 %}h-good{% elif hs >= 40 %}h-warn{% else %}h-crit{% endif %}" style="border-radius:10px; padding:5px 12px; font-weight:700;">
+        Health: {{ "%.0f"|format(hs) }}
+      </span>
+    </div>
+  </div>
+  <div class="ph-right" style="gap:12px;">
+    {% if campaign.status == 'active' %}
+    <form method="POST" action="{{ url_for('campaigns.pause', campaign_id=campaign.id) }}" style="display:inline;">
+      <button type="submit" class="btn btn-secondary" style="border-radius:12px; padding:11px 20px; font-weight:600;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        Pause
+      </button>
+    </form>
+    {% elif campaign.status == 'paused' %}
+    <form method="POST" action="{{ url_for('campaigns.resume', campaign_id=campaign.id) }}" style="display:inline;">
+      <button type="submit" class="btn btn-secondary" style="border-radius:12px; padding:11px 20px; font-weight:600;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Resume
+      </button>
+    </form>
+    {% endif %}
+    <form method="POST" action="{{ url_for('campaigns.delete', campaign_id=campaign.id) }}" style="display:inline;" onsubmit="return confirm('Delete this campaign? This cannot be undone.');">
+      <button type="submit" class="btn btn-danger" style="border-radius:12px; padding:11px 20px; font-weight:600;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Delete
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="mini-stats mb-24" style="border-radius:20px; overflow:hidden; box-shadow:var(--shadow-sm);">
+  <div class="mini-stat" style="padding:24px 20px; background:var(--bg-card);">
+    <div class="ms-val" style="font-size:38px; font-weight:700; letter-spacing:-1px;">₹{{ "{:,.0f}".format(detail.summary.total_spend or 0) }}</div>
+    <div class="ms-label" style="font-size:13px; margin-top:6px;">Total Spend</div>
+  </div>
+  <div class="mini-stat" style="padding:24px 20px; background:var(--bg-card);">
+    <div class="ms-val" style="font-size:38px; font-weight:700; letter-spacing:-1px;">₹{{ "{:,.0f}".format(detail.summary.total_revenue or 0) }}</div>
+    <div class="ms-label" style="font-size:13px; margin-top:6px;">Total Revenue</div>
+  </div>
+  <div class="mini-stat" style="padding:24px 20px; background:var(--bg-card);">
+    <div class="ms-val" style="font-size:38px; font-weight:700; letter-spacing:-1px;">{{ "%.2f"|format(detail.summary.avg_roi or 0) }}x</div>
+    <div class="ms-label" style="font-size:13px; margin-top:6px;">Avg ROI</div>
+  </div>
+  <div class="mini-stat" style="padding:24px 20px; background:var(--bg-card);">
+    <div class="ms-val" style="font-size:38px; font-weight:700; letter-spacing:-1px;">{{ "%.2f"|format(detail.summary.avg_ctr or 0) }}%</div>
+    <div class="ms-label" style="font-size:13px; margin-top:6px;">Avg CTR</div>
+  </div>
+  <div class="mini-stat" style="padding:24px 20px; background:var(--bg-card);">
+    <div class="ms-val" style="font-size:38px; font-weight:700; letter-spacing:-1px;">{{ "{:,}".format(detail.summary.total_conversions or 0) }}</div>
+    <div class="ms-label" style="font-size:13px; margin-top:6px;">Conversions</div>
+  </div>
+</div>
+
+<div class="dash-grid" style="gap:24px;">
+  <div class="fc gap-20">
+
+    <div class="chart-card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head">
+        <div><div class="card-title" style="font-size:17px; font-weight:600;">Spend &amp; Clicks — Last 30 Days</div></div>
+      </div>
+      {% if detail.history and detail.history|length > 0 %}
+      <div class="chart-box chart-h280">
+        <canvas id="campaignDetailChart"></canvas>
+      </div>
+      {% else %}
+      <div class="empty" style="padding:50px 20px;">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3 style="font-size:17px; margin-top:14px;">No performance data yet</h3>
+        <p style="margin-top:6px;">Metrics will appear once the platform sync runs.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">Campaign Details</div></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Objective</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ campaign.objective.replace('_',' ').title() }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Daily Budget</span><span class="stat-value" style="font-size:15px; font-weight:600;">₹{{ "{:,.0f}".format(campaign.daily_budget) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Total Budget</span><span class="stat-value" style="font-size:15px; font-weight:600;">₹{{ "{:,.0f}".format(campaign.total_budget) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Spent So Far</span><span class="stat-value" style="font-size:15px; font-weight:600;">₹{{ "{:,.0f}".format(campaign.spent_total) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Start Date</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ campaign.start_date }}</span></div>
+      {% if campaign.end_date %}
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">End Date</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ campaign.end_date }}</span></div>
+      {% endif %}
+      {% if campaign.target_audience %}
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Target Audience</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ campaign.target_audience }}</span></div>
+      {% endif %}
+      {% if campaign.keywords and campaign.keywords not in ('[]', '') %}
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Keywords</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ campaign.keywords|replace('[','')|replace(']','')|replace('"','') }}</span></div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <div class="fc gap-20">
+    <div class="card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">Platform Sync Status</div></div>
+      {% if sync_status %}
+        {% for s in sync_status %}
+        <div class="flex gap-12 mb-16" style="align-items:flex-start; margin-bottom:18px;">
+          <div class="plat-logo {{ s.platform }}" style="width:32px;height:32px;font-size:12px;flex-shrink:0; border-radius:10px;">{{ s.platform[0].upper() }}</div>
+          <div class="f1">
+            <div class="flex fjb" style="align-items:center;">
+              <span style="font-size:14px; font-weight:600; color:var(--text-primary);">{{ s.platform.title() }} Ads</span>
+              {% if s.status in ('created','active') %}<span class="badge badge-green" style="border-radius:20px; padding:4px 10px; font-weight:600;">{{ s.status.title() }}</span>
+              {% elif s.status == 'paused' %}<span class="badge badge-amber" style="border-radius:20px; padding:4px 10px; font-weight:600;">Paused</span>
+              {% elif s.status == 'failed' %}<span class="badge badge-red" style="border-radius:20px; padding:4px 10px; font-weight:600;">Failed</span>
+              {% else %}<span class="badge badge-muted" style="border-radius:20px; padding:4px 10px; font-weight:600;">{{ s.status.title() }}</span>{% endif %}
+            </div>
+            <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">
+              External ID: <span style="font-family:var(--font-mono);">{{ s.external_id }}</span>
+            </div>
+            {% if s.error_message %}
+            <div style="font-size:12.5px; color:var(--red); margin-top:4px;">{{ s.error_message }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <p style="font-size:14px; color:var(--text-muted); padding: 8px 0;">Not yet synced to any platform.</p>
+      {% endif %}
+    </div>
+
+    <div class="card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">Performance Summary</div></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Impressions</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ "{:,}".format(detail.summary.total_impressions or 0) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Clicks</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ "{:,}".format(detail.summary.total_clicks or 0) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Avg CPC</span><span class="stat-value" style="font-size:15px; font-weight:600;">₹{{ "%.2f"|format(detail.summary.avg_cpc or 0) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Avg CPA</span><span class="stat-value" style="font-size:15px; font-weight:600;">₹{{ "%.2f"|format(detail.summary.avg_cpa or 0) }}</span></div>
+      <div class="stat-row" style="padding:12px 0;"><span class="stat-label" style="font-size:15px;">Days Tracked</span><span class="stat-value" style="font-size:15px; font-weight:600;">{{ detail.summary.total_days or 0 }}</span></div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% if detail.history and detail.history|length > 0 %}
+<script>
+const history = {{ detail.history|reverse|list|tojson }};
+const dLabels = history.map(h => h.date);
+const dSpend  = history.map(h => h.spend);
+const dClicks = history.map(h => h.clicks);
+initCampaignDetailChart('campaignDetailChart', dLabels, dSpend, dClicks);
+</script>
+{% endif %}
+{% endblock %}

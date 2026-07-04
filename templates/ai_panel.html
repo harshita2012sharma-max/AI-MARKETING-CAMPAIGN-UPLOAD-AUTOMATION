@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}AI Engine{% endblock %}
+{% block page_title %}AI Engine{% endblock %}
+
+{% block content %}
+
+<div class="ph" style="margin-bottom:32px;">
+  <div class="ph-left">
+    <h1 style="font-size:34px; font-weight:700; letter-spacing:-0.6px; color:var(--text-primary);">AI Engine</h1>
+    <p style="font-size:16px; color:var(--text-muted); margin-top:8px;">Recommendations, anomaly detection, and conversational insights</p>
+  </div>
+</div>
+
+{% if summary %}
+<div class="ai-insight mb-24" style="border-radius:20px; padding:24px 28px; background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.22); box-shadow:var(--shadow-sm);">
+  <div class="ai-insight-head">
+    <span class="ai-badge" style="border-radius:20px; padding:6px 14px; font-weight:700; letter-spacing:.4px;">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Executive Summary
+    </span>
+  </div>
+  <p style="font-size:16px; margin-top:14px;"><strong style="color:var(--text-primary);">{{ summary.headline }}</strong></p>
+  <p class="mt-8" style="font-size:15px; margin-top:8px; line-height:1.7;">{{ summary.performance }}</p>
+</div>
+{% endif %}
+
+<div class="dash-grid" style="gap:24px;">
+  <div class="fc gap-20">
+
+    <div class="card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head">
+        <div>
+          <div class="card-title" style="font-size:17px; font-weight:600;">AI Recommendations</div>
+          <div class="card-sub" style="font-size:13.5px; margin-top:4px;">{{ recommendations|length }} actionable insights generated</div>
+        </div>
+      </div>
+      {% if recommendations %}
+        {% for r in recommendations %}
+        <div class="rec-card" style="border-radius:16px; padding:20px; margin-top:14px; background:var(--bg-elevated); border:1px solid var(--border);">
+          <div class="rec-head">
+            <span class="rec-title" style="font-size:15px; font-weight:600; color:var(--text-primary);">{{ r.title }}</span>
+            <span class="rec-conf" style="font-size:12.5px; font-weight:600; color:var(--blue);">{{ (r.confidence * 100)|round|int }}% confident</span>
+          </div>
+          <p class="rec-reason" style="font-size:14px; margin-top:8px; line-height:1.6;">{{ r.reason }}</p>
+          <span class="rec-action" style="font-size:13.5px; display:inline-block; margin-top:10px; font-weight:600; color:var(--green);">{{ r.suggested_action }}</span>
+          <div class="rec-impact" style="font-size:13px; margin-top:8px; color:var(--text-muted);">Expected impact: {{ r.expected_impact }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty" style="padding:50px 20px;">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+        <h3 style="font-size:17px; margin-top:14px;">No recommendations yet</h3>
+        <p style="margin-top:6px;">All campaigns are performing within expected ranges.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head">
+        <div class="card-title" style="font-size:17px; font-weight:600;">Detected Anomalies</div>
+        {% if anomalies %}<span class="badge badge-red" style="border-radius:20px; padding:5px 12px; font-weight:600;"><span class="dot"></span>{{ anomalies|length }}</span>{% endif %}
+      </div>
+      {% if anomalies %}
+        {% for a in anomalies %}
+        <div class="anomaly-card sev-{{ a.severity }}" style="border-radius:16px; padding:18px; margin-top:14px;">
+          <div class="anomaly-icon sev-{{ a.severity }}" style="border-radius:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <div class="anomaly-title" style="font-size:14.5px; font-weight:600;">{{ a.title }}</div>
+            <div class="anomaly-msg" style="font-size:13.5px; margin-top:4px;">{{ a.message }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty" style="padding:50px 20px;">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h3 style="font-size:17px; margin-top:14px;">No anomalies detected</h3>
+        <p style="margin-top:6px;">All campaigns are behaving normally.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <div class="fc gap-20">
+    <div class="chat-wrap" style="border-radius:20px; overflow:hidden; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="chat-head" style="padding:20px 22px;">
+        <span class="chat-ai-dot"></span>
+        <div>
+          <div class="chat-ai-label" style="font-size:15px; font-weight:600;">AdPulse AI Assistant</div>
+          <div class="chat-ai-sub" style="font-size:13px; margin-top:2px;">Ask about your campaigns</div>
+        </div>
+      </div>
+      <div class="chat-msgs" id="chat-msgs" style="padding:16px 22px;">
+        <div class="chat-msg ai">
+          <div class="chat-bubble" style="border-radius:16px; padding:14px 18px; font-size:14.5px; line-height:1.6;">Hi! I can answer questions about your spend, ROI, CTR, conversions, and campaign performance. What would you like to know?</div>
+        </div>
+      </div>
+      <div class="chat-input-wrap" style="padding:16px 22px;">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Ask about your campaigns…" style="border-radius:12px; padding:12px 16px; font-size:14.5px;">
+        <button class="chat-send" id="chat-send-btn" style="border-radius:12px; width:42px; height:42px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="border-radius:20px; padding:22px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-title mb-12" style="font-size:15px; font-weight:600; margin-bottom:14px;">Try asking</div>
+      <div class="fc gap-8">
+        <button class="chat-suggestion" style="text-align:left; background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px; padding:11px 14px; font-size:13.5px; color:var(--text-secondary); cursor:pointer;">Which campaign has the best ROI?</button>
+        <button class="chat-suggestion" style="text-align:left; background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px; padding:11px 14px; font-size:13.5px; color:var(--text-secondary); cursor:pointer;">What's my total spend this month?</button>
+        <button class="chat-suggestion" style="text-align:left; background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px; padding:11px 14px; font-size:13.5px; color:var(--text-secondary); cursor:pointer;">How many conversions this week?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

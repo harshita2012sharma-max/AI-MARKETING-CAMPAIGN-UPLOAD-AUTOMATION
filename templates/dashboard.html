@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="welcome-banner">
+  <div class="wb-left">
+    <h2>Good {{ 'morning' if now.hour < 12 else 'afternoon' if now.hour < 17 else 'evening' }} 👋</h2>
+    <p>Here's your campaign performance across all platforms today</p>
+  </div>
+  <div class="wb-stats">
+    <div><div class="wb-stat-val">{{ counts.by_status.get('active',0) if counts else 0 }}</div><div class="wb-stat-label">Active</div></div>
+    <div><div class="wb-stat-val">{{ recommendations|length if recommendations else 0 }}</div><div class="wb-stat-label">Insights</div></div>
+    <div><div class="wb-stat-val">{{ anomalies|length if anomalies else 0 }}</div><div class="wb-stat-label">Alerts</div></div>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi accent">
+    <div class="kpi-label">Total Spend (30d)</div>
+    <div class="kpi-val">₹{{ "{:,.0f}".format(kpis.total_spend) }}</div>
+    <div class="kpi-meta">Across {{ kpis.platforms|length if kpis.platforms else 3 }} platforms</div>
+  </div>
+  <div class="kpi green">
+    <div class="kpi-label">Total Revenue</div>
+    <div class="kpi-val">₹{{ "{:,.0f}".format(kpis.total_revenue) }}</div>
+    <div class="kpi-meta"><span class="kpi-up">↑ {{ kpis.avg_roi }}x</span> average ROI</div>
+  </div>
+  <div class="kpi amber">
+    <div class="kpi-label">Total Clicks</div>
+    <div class="kpi-val">{{ "{:,}".format(kpis.total_clicks) }}</div>
+    <div class="kpi-meta">{{ kpis.avg_ctr }}% average CTR</div>
+  </div>
+  <div class="kpi purple">
+    <div class="kpi-label">Conversions</div>
+    <div class="kpi-val">{{ "{:,}".format(kpis.total_conversions) }}</div>
+    <div class="kpi-meta">Last 30 days</div>
+  </div>
+</div>
+
+{% if recommendations and recommendations|length > 0 %}
+<div class="ai-insight">
+  <div class="ai-insight-head">
+    <span class="ai-badge">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      AI Insight
+    </span>
+  </div>
+  <p><strong>{{ recommendations[0].title }}</strong> — {{ recommendations[0].reason }} <a href="{{ url_for('ai.index') }}">View all {{ recommendations|length }} recommendations →</a></p>
+</div>
+{% endif %}
+
+<div class="dash-grid">
+  <div class="fc gap-20">
+    <div class="chart-card">
+      <div class="card-head">
+        <div><div class="card-title">Spend & Revenue Trend</div><div class="card-sub">Last 30 days across all platforms</div></div>
+      </div>
+      <div class="chart-box chart-h280"><canvas id="spendChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><div class="card-title">Top Performing Campaigns</div><div class="card-sub">Ranked by ROI</div></div>
+        <a href="{{ url_for('campaigns.index') }}" class="btn btn-ghost btn-sm">View all</a>
+      </div>
+      {% if top_camps %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Campaign</th><th>Platform</th><th>ROI</th><th>Conversions</th><th>Spend</th></tr></thead>
+          <tbody>
+            {% for c in top_camps[:5] %}
+            <tr onclick="window.location='{{ url_for('campaigns.detail', campaign_id=c.id) }}'" style="cursor:pointer">
+              <td><span class="camp-rank {% if loop.index==1 %}rank-1{% elif loop.index==2 %}rank-2{% elif loop.index==3 %}rank-3{% endif %}">{{ loop.index }}</span></td>
+              <td class="td-main">{{ c.name }}</td>
+              <td><span class="plat plat-{{ c.platform }}">{{ c.platform.title() }}</span></td>
+              <td class="td-main">{{ "%.2f"|format(c.avg_roi) }}x</td>
+              <td>{{ c.total_conversions }}</td>
+              <td>₹{{ "{:,.0f}".format(c.total_spend) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>No data yet</h3><p>Create your first campaign to see performance data.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="fc gap-20">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Platform Breakdown</div></div>
+      <div class="chart-box" style="height:190px;"><canvas id="platformDonut"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Active Alerts</div>
+        {% if anomalies and anomalies|length > 0 %}<span class="badge badge-red"><span class="dot"></span>{{ anomalies|length }}</span>{% endif %}
+      </div>
+      {% if anomalies and anomalies|length > 0 %}
+        {% for a in anomalies[:4] %}
+        <div class="alert-item">
+          <span class="alert-bullet {% if a.severity=='error' %}red{% else %}amber{% endif %}"></span>
+          <div class="alert-text"><span class="alert-camp">{{ a.campaign_name }}</span> — {{ a.title }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty" style="padding:28px 10px;">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h3 style="font-size:14px;">All clear</h3><p style="font-size:13px;">No anomalies detected</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Recent Activity</div></div>
+      <div class="timeline">
+        {% if audit_logs %}
+          {% for log in audit_logs[:6] %}
+          <div class="tl-item">
+            <span class="tl-dot {% if 'create' in log.action %}green{% elif 'pause' in log.action %}amber{% elif 'login' in log.action %}blue{% else %}purple{% endif %}"></span>
+            <div class="tl-text">{{ log.description }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <p style="font-size:13px;color:var(--text-muted);padding:8px 0;">No activity yet</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+const trendLabels  = {{ trend|map(attribute='date')|list|tojson }};
+const trendSpend   = {{ trend|map(attribute='spend')|list|tojson }};
+const trendRevenue = {{ trend|map(attribute='revenue')|list|tojson }};
+initSpendChart('spendChart', trendLabels, trendSpend, trendRevenue);
+const platLabels = {{ comparison|map(attribute='platform')|list|tojson }};
+const platSpend  = {{ comparison|map(attribute='total_spend')|list|tojson }};
+initPlatformDonut('platformDonut', platLabels.map(p=>p.charAt(0).toUpperCase()+p.slice(1)), platSpend);
+</script>
+{% endblock %}

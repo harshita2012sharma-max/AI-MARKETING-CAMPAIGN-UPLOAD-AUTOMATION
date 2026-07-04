@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+
+<div class="ph" style="margin-bottom:32px;">
+  <div class="ph-left">
+    <h1 style="font-size:34px; font-weight:700; letter-spacing:-0.6px; color:var(--text-primary);">Analytics</h1>
+    <p style="font-size:16px; color:var(--text-muted); margin-top:8px;">Cross-platform performance comparison and forecasting</p>
+  </div>
+</div>
+
+{% if comparison %}
+<div class="g3 mb-24" style="gap:20px;">
+  {% for p in comparison %}
+  <div class="plat-card" style="border-radius:20px; padding:24px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+    <div class="plat-card-head" style="margin-bottom:16px;">
+      <div class="plat-logo {{ p.platform }}" style="width:38px;height:38px;border-radius:12px;">{{ p.platform[0].upper() }}</div>
+      <div>
+        <div class="plat-name" style="font-size:15px; font-weight:600;">{{ p.platform.title() }} Ads</div>
+        <div class="plat-spend" style="font-size:13px; margin-top:2px;">₹{{ "{:,.0f}".format(p.total_spend or 0) }} spent</div>
+      </div>
+    </div>
+    <div class="stat-row" style="padding:10px 0;"><span class="stat-label" style="font-size:14px;">Revenue</span><span class="stat-value" style="font-size:14px; font-weight:600;">₹{{ "{:,.0f}".format(p.total_revenue or 0) }}</span></div>
+    <div class="stat-row" style="padding:10px 0;"><span class="stat-label" style="font-size:14px;">ROI</span><span class="stat-value" style="font-size:14px; font-weight:600;">{{ "%.2f"|format(p.avg_roi or 0) }}x</span></div>
+    <div class="stat-row" style="padding:10px 0;"><span class="stat-label" style="font-size:14px;">CTR</span><span class="stat-value" style="font-size:14px; font-weight:600;">{{ "%.2f"|format(p.avg_ctr or 0) }}%</span></div>
+    <div class="stat-row" style="padding:10px 0;"><span class="stat-label" style="font-size:14px;">Clicks</span><span class="stat-value" style="font-size:14px; font-weight:600;">{{ "{:,}".format(p.total_clicks or 0) }}</span></div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="dash-grid" style="gap:24px;">
+  <div class="fc gap-20">
+
+    <div class="chart-card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head">
+        <div class="card-title" style="font-size:17px; font-weight:600;">Spend by Platform — Daily Trend</div>
+      </div>
+      {% if trend and trend|length > 0 %}
+      <div class="chart-box chart-h280">
+        <canvas id="platformBarChart"></canvas>
+      </div>
+      {% else %}
+      <div class="empty" style="padding:40px 20px;"><h3 style="font-size:16px;">No trend data yet</h3><p style="margin-top:6px;">Data will appear once campaigns start syncing.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="chart-card" style="border-radius:20px; padding:26px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">ROI Trend — Last 30 Days</div></div>
+      {% if trend and trend|length > 0 %}
+      <div class="chart-box chart-h220">
+        <canvas id="roiChart"></canvas>
+      </div>
+      {% else %}
+      <div class="empty" style="padding:40px 20px;"><h3 style="font-size:16px;">No ROI data yet</h3></div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <div class="fc gap-20">
+
+    <div class="card" style="border-radius:20px; padding:24px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">Best ROI</div></div>
+      {% if top %}
+        {% for c in top[:5] %}
+        <div class="metric-compare" style="padding:11px 0;">
+          <span class="mc-label" style="font-size:14px;">{{ c.name[:24] }}</span>
+          <span class="mc-val" style="font-size:14px; font-weight:700;">{{ "%.1f"|format(c.avg_roi) }}x</span>
+        </div>
+        {% endfor %}
+      {% else %}
+      <p style="font-size:14px; color:var(--text-muted); padding: 8px 0;">No data yet</p>
+      {% endif %}
+    </div>
+
+    <div class="card" style="border-radius:20px; padding:24px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">Needs Attention</div></div>
+      {% if worst %}
+        {% for c in worst[:5] %}
+        <div class="metric-compare" style="padding:11px 0;">
+          <span class="mc-label" style="font-size:14px;">{{ c.name[:24] }}</span>
+          <span class="mc-val" style="font-size:14px; font-weight:700; color:var(--red);">{{ "%.2f"|format(c.avg_roi) }}x</span>
+        </div>
+        {% endfor %}
+      {% else %}
+      <p style="font-size:14px; color:var(--text-muted); padding: 8px 0;">All campaigns performing well</p>
+      {% endif %}
+    </div>
+
+    <div class="card" style="border-radius:20px; padding:24px; background:var(--bg-card); border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+      <div class="card-head"><div class="card-title" style="font-size:17px; font-weight:600;">7-Day Forecast</div></div>
+      {% if forecasts %}
+        {% for f in forecasts[:5] %}
+        <div class="forecast-item" style="padding:11px 0;">
+          <span class="forecast-name" style="font-size:14px;">{{ f.campaign_name[:20] }}</span>
+          <span class="forecast-trend {% if f.trend_direction == 'up' %}trend-up{% elif f.trend_direction == 'down' %}trend-down{% else %}trend-flat{% endif %}" style="font-size:14px;">
+            {{ '↑' if f.trend_direction == 'up' else '↓' if f.trend_direction == 'down' else '→' }}
+          </span>
+          <span class="forecast-val" style="font-size:14px; font-weight:700;">₹{{ "{:,.0f}".format(f.predicted_spend) }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+      <p style="font-size:14px; color:var(--text-muted); padding: 8px 0;">No forecast data yet</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% if trend and trend|length > 0 %}
+<script>
+const tLabels = {{ trend|map(attribute='date')|list|tojson }};
+const tSpend  = {{ trend|map(attribute='spend')|list|tojson }};
+
+initPlatformBar('platformBarChart', tLabels, tSpend.map(v=>v*0.45), tSpend.map(v=>v*0.35), tSpend.map(v=>v*0.20));
+
+const roiData = {{ trend|map(attribute='revenue')|list|tojson }}.map((r,i) => {
+  const s = {{ trend|map(attribute='spend')|list|tojson }}[i];
+  return s > 0 ? r / s : 0;
+});
+initROIChart('roiChart', tLabels, roiData);
+</script>
+{% endif %}
+{% endblock %}
